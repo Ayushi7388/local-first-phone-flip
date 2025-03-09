@@ -1,91 +1,152 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import { WishlistItem } from '@/types/models';
+import { useAuth } from './AuthContext';
+import { useListings } from './ListingContext';
 
-type WishlistItem = {
-  id: string;
-  userID: string;
-  listingID: string;
-  addedAt: Date;
-  priceAlert: number | null;
-};
-
-type WishlistContextType = {
+interface WishlistContextType {
   wishlistItems: WishlistItem[];
-  addToWishlist: (listingID: string) => void;
-  removeFromWishlist: (listingID: string) => void;
-  isInWishlist: (listingID: string) => boolean;
-  setPriceAlert: (listingID: string, price: number) => void;
-};
+  isLoading: boolean;
+  addToWishlist: (listingId: string, priceAlert?: number) => Promise<WishlistItem | null>;
+  removeFromWishlist: (id: string) => Promise<boolean>;
+  isInWishlist: (listingId: string) => boolean;
+  updatePriceAlert: (id: string, priceAlert: number) => Promise<WishlistItem | null>;
+}
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-export const useWishlist = () => {
-  const context = useContext(WishlistContext);
-  if (!context) {
-    throw new Error('useWishlist must be used within a WishlistProvider');
-  }
-  return context;
-};
-
 export const WishlistProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>(() => {
-    const savedItems = localStorage.getItem('wishlist');
-    return savedItems ? JSON.parse(savedItems) : [];
-  });
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const { listings } = useListings();
 
-  // Save wishlist to localStorage whenever it changes
+  // Load wishlist items when user changes
   useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
+    const loadWishlist = async () => {
+      if (!user) {
+        setWishlistItems([]);
+        setIsLoading(false);
+        return;
+      }
 
-  const addToWishlist = (listingID: string) => {
-    // Mock userID - in a real app, this would come from authentication
-    const userID = 'user123';
+      setIsLoading(true);
+      try {
+        // In a real app, this would be an API call
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate delay
+        
+        const storedWishlist = localStorage.getItem(`phoneflip_wishlist_${user.id}`);
+        if (storedWishlist) {
+          const parsed = JSON.parse(storedWishlist);
+          setWishlistItems(parsed.map((item: any) => ({
+            ...item,
+            createdAt: new Date(item.createdAt)
+          })));
+        } else {
+          setWishlistItems([]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     
-    // Check if item already exists in wishlist
-    if (!isInWishlist(listingID)) {
-      const newItem: WishlistItem = {
-        id: uuidv4(),
-        userID,
-        listingID,
-        addedAt: new Date(),
-        priceAlert: null,
-      };
-      
-      setWishlistItems(prev => [...prev, newItem]);
-    }
-  };
+    loadWishlist();
+  }, [user]);
 
-  const removeFromWishlist = (listingID: string) => {
-    setWishlistItems(prev => prev.filter(item => item.listingID !== listingID));
+  // Add an item to wishlist
+  const addToWishlist = async (listingId: string, priceAlert?: number): Promise<WishlistItem | null> => {
+    if (!user) return null;
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const newItem: WishlistItem = {
+      id: `wishlist-${Date.now()}`,
+      userID: user.id,
+      listingID: listingId,
+      priceAlert,
+      createdAt: new Date()
+    };
+    
+    const updatedWishlist = [...wishlistItems, newItem];
+    setWishlistItems(updatedWishlist);
+    
+    // Update localStorage
+    localStorage.setItem(`phoneflip_wishlist_${user.id}`, JSON.stringify(updatedWishlist));
+    
+    return newItem;
   };
-
-  const isInWishlist = (listingID: string) => {
-    return wishlistItems.some(item => item.listingID === listingID);
+  
+  // Remove an item from wishlist
+  const removeFromWishlist = async (id: string): Promise<boolean> => {
+    if (!user) return false;
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const updatedWishlist = wishlistItems.filter(item => item.id !== id);
+    
+    if (updatedWishlist.length === wishlistItems.length) return false;
+    
+    setWishlistItems(updatedWishlist);
+    
+    // Update localStorage
+    localStorage.setItem(`phoneflip_wishlist_${user.id}`, JSON.stringify(updatedWishlist));
+    
+    return true;
   };
-
-  const setPriceAlert = (listingID: string, price: number) => {
-    setWishlistItems(prev => 
-      prev.map(item => 
-        item.listingID === listingID 
-          ? { ...item, priceAlert: price } 
-          : item
-      )
-    );
+  
+  // Check if a listing is in the wishlist
+  const isInWishlist = (listingId: string): boolean => {
+    return wishlistItems.some(item => item.listingID === listingId);
   };
-
-  const value = {
-    wishlistItems,
-    addToWishlist,
-    removeFromWishlist,
-    isInWishlist,
-    setPriceAlert
+  
+  // Update price alert for a wishlist item
+  const updatePriceAlert = async (id: string, priceAlert: number): Promise<WishlistItem | null> => {
+    if (!user) return null;
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    const index = wishlistItems.findIndex(item => item.id === id);
+    if (index === -1) return null;
+    
+    const updatedItem = {
+      ...wishlistItems[index],
+      priceAlert
+    };
+    
+    const updatedWishlist = [...wishlistItems];
+    updatedWishlist[index] = updatedItem;
+    
+    setWishlistItems(updatedWishlist);
+    
+    // Update localStorage
+    localStorage.setItem(`phoneflip_wishlist_${user.id}`, JSON.stringify(updatedWishlist));
+    
+    return updatedItem;
   };
 
   return (
-    <WishlistContext.Provider value={value}>
+    <WishlistContext.Provider value={{
+      wishlistItems,
+      isLoading,
+      addToWishlist,
+      removeFromWishlist,
+      isInWishlist,
+      updatePriceAlert
+    }}>
       {children}
     </WishlistContext.Provider>
   );
+};
+
+export const useWishlist = () => {
+  const context = useContext(WishlistContext);
+  if (context === undefined) {
+    throw new Error('useWishlist must be used within a WishlistProvider');
+  }
+  return context;
 };

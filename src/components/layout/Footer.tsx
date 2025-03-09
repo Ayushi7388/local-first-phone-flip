@@ -11,7 +11,7 @@ const Footer = () => {
           <div className="space-y-4">
             <Link to="/" className="inline-block">
               <span className="text-2xl font-bold">
-                Ay<span className="text-brand-accent">PhoneFlip</span>
+                Phone<span className="text-brand-accent">Flip</span>
               </span>
             </Link>
             <p className="text-gray-300 text-sm">
@@ -94,7 +94,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start">
                 <Mail className="h-5 w-5 mr-2 mt-0.5 text-gray-300" />
-                <span className="text-gray-300">support@ayphoneflip.com</span>
+                <span className="text-gray-300">support@phoneflip.com</span>
               </li>
               <li className="flex items-start">
                 <MapPin className="h-5 w-5 mr-2 mt-0.5 text-gray-300" />
@@ -108,7 +108,7 @@ const Footer = () => {
 
         <div className="border-t border-gray-700 mt-8 pt-6">
           <p className="text-sm text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} AyPhoneFlip. All rights reserved.
+            &copy; {new Date().getFullYear()} PhoneFlip. All rights reserved.
           </p>
         </div>
       </div>
