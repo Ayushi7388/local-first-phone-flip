@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, User, Heart, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
@@ -14,7 +16,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <span className="text-2xl font-bold text-brand">
-              Phone<span className="text-brand-accent">Flip</span>
+              Mobi<span className="text-brand-accent">Kharidar</span>
             </span>
           </Link>
 
@@ -38,16 +40,41 @@ const Header = () => {
                 <Heart className="h-5 w-5" />
               </Button>
             </Link>
-            <Link to="/login">
-              <Button variant="ghost" size="sm" className="text-gray-700 hover:text-brand-accent">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button variant="default" size="sm" className="bg-brand-accent hover:bg-blue-600 text-white">
-                Sign Up
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-4">
+                <Link to="/profile">
+                  <Button variant="ghost" size="icon" className="text-gray-700 hover:text-brand-accent">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link to="/orders">
+                  <Button variant="ghost" size="icon" className="text-gray-700 hover:text-brand-accent">
+                    <ShoppingBag className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-gray-700 hover:text-brand-accent"
+                  onClick={() => logout()}
+                >
+                  Logout
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm" className="text-gray-700 hover:text-brand-accent">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button variant="default" size="sm" className="bg-brand-accent hover:bg-blue-600 text-white">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -89,24 +116,59 @@ const Header = () => {
             >
               How It Works
             </Link>
-            <div className="border-t border-gray-200 pt-4 mt-4">
-              <div className="flex justify-between">
+            {isAuthenticated ? (
+              <>
                 <Link 
-                  to="/login" 
-                  className="w-1/2 pr-2"
+                  to="/profile" 
+                  className="block text-gray-700 hover:text-brand-accent px-4 py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Button variant="outline" className="w-full">Sign In</Button>
+                  My Profile
                 </Link>
                 <Link 
-                  to="/register" 
-                  className="w-1/2 pl-2"
+                  to="/orders" 
+                  className="block text-gray-700 hover:text-brand-accent px-4 py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Button variant="default" className="w-full bg-brand-accent hover:bg-blue-600">Sign Up</Button>
+                  My Orders
                 </Link>
+                <Link 
+                  to="/wishlist" 
+                  className="block text-gray-700 hover:text-brand-accent px-4 py-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  My Wishlist
+                </Link>
+                <button 
+                  className="block w-full text-left text-gray-700 hover:text-brand-accent px-4 py-2"
+                  onClick={() => {
+                    logout();
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <div className="border-t border-gray-200 pt-4 mt-4">
+                <div className="flex justify-between">
+                  <Link 
+                    to="/login" 
+                    className="w-1/2 pr-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full">Sign In</Button>
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="w-1/2 pl-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Button variant="default" className="w-full bg-brand-accent hover:bg-blue-600">Sign Up</Button>
+                  </Link>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
